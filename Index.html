@@ -1,18 +1,318 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Barcode Matcher</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Matcher - Data Processing Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .file-input-button.selected {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #FF6B6B, #FF5252);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #d32f2f;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f44336;
+            font-weight: 500;
+        }
+
+        .instructions {
+            background: rgba(33, 150, 243, 0.1);
+            color: #1976D2;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Upload CSV Files</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <label>Top 1500 File (In Stock):</label><br>
-        <input type="file" name="top_file" accept=".csv" required><br><br>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Barcode Matcher</h1>
+            <p>Upload your CSV files to generate matched barcode reports</p>
+        </div>
 
-        <label>Product Sold File:</label><br>
-        <input type="file" name="sold_file" accept=".csv" required><br><br>
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ul>
+                <li><strong>Top File:</strong> CSV with barcode data and product information</li>
+                <li><strong>Sold File:</strong> CSV with SKU/barcode sales data</li>
+                <li>Files should be in CSV format and under 16MB</li>
+                <li>The system will match barcodes and generate an Excel report</li>
+            </ul>
+        </div>
 
-        <input type="submit" value="Match and Download Report">
-    </form>
+        {% if error %}
+        <div class="error">
+            ❌ {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="form-group">
+                <label for="top_file">📁 Select Top File (CSV):</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="top_file" name="top_file" accept=".csv" class="file-input" required>
+                    <label for="top_file" class="file-input-button" id="topFileBtn">
+                        📂 Choose Top File
+                    </label>
+                    <div class="file-name" id="topFileName"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="sold_file">📁 Select Sold File (CSV):</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="sold_file" name="sold_file" accept=".csv" class="file-input" required>
+                    <label for="sold_file" class="file-input-button" id="soldFileBtn">
+                        📂 Choose Sold File
+                    </label>
+                    <div class="file-name" id="soldFileName"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                🚀 Process Files & Download Report
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your files... Please wait.</p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Handle file input display
+        document.getElementById('top_file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || '';
+            const btn = document.getElementById('topFileBtn');
+            const nameDiv = document.getElementById('topFileName');
+            
+            if (fileName) {
+                btn.textContent = '✅ ' + fileName;
+                btn.classList.add('selected');
+                nameDiv.textContent = 'Selected: ' + fileName;
+            } else {
+                btn.textContent = '📂 Choose Top File';
+                btn.classList.remove('selected');
+                nameDiv.textContent = '';
+            }
+        });
+
+        document.getElementById('sold_file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || '';
+            const btn = document.getElementById('soldFileBtn');
+            const nameDiv = document.getElementById('soldFileName');
+            
+            if (fileName) {
+                btn.textContent = '✅ ' + fileName;
+                btn.classList.add('selected');
+                nameDiv.textContent = 'Selected: ' + fileName;
+            } else {
+                btn.textContent = '📂 Choose Sold File';
+                btn.classList.remove('selected');
+                nameDiv.textContent = '';
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const topFile = document.getElementById('top_file').files[0];
+            const soldFile = document.getElementById('sold_file').files[0];
+            
+            if (!topFile || !soldFile) {
+                e.preventDefault();
+                alert('Please select both files before submitting.');
+                return;
+            }
+
+            // Show loading animation
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').textContent = '⏳ Processing...';
+        });
+
+        // Reset form state if there's an error
+        window.addEventListener('load', function() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = '🚀 Process Files & Download Report';
+        });
+    </script>
 </body>
 </html>
