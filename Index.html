@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Barcode Matcher</title>
+</head>
+<body>
+    <h2>Upload CSV Files</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Top 1500 File (In Stock):</label><br>
+        <input type="file" name="top_file" accept=".csv" required><br><br>
+
+        <label>Product Sold File:</label><br>
+        <input type="file" name="sold_file" accept=".csv" required><br><br>
+
+        <input type="submit" value="Match and Download Report">
+    </form>
+</body>
+</html>
